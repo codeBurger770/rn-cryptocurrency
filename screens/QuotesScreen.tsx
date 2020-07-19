@@ -7,20 +7,41 @@ import Table from '../components/Table'
 import TableRow from '../components/TableRow'
 import TableCell from '../components/TableCell'
 
+interface ITiker {
+    id: number,
+    last: string,
+    lowestAsk: string,
+    highestBid: string,
+    percentChange: string,
+    baseVolume: string,
+    quoteVolume: string,
+    isFrozen: string,
+    high24hr: string,
+    low24hr: string
+}
+
+interface ICryptoCurrency {
+    id: string,
+    name: string,
+    last: string,
+    highestBid: string,
+    percentChange: string
+}
+
 export default function QuotesScreen() {
     const [isLoading, setIsLoading] = useState(true)
     const [isError, setIsError] = useState(false)
-    const [cryptoCurrency, setCryptoCurrency] = useState([])
+    const [cryptoCurrencies, setCryptoCurrencies] = useState<Array<ICryptoCurrency>>([])
     const isFocused = useIsFocused()
 
     const getCryptoCurrencyFromApi = async () => {
         try {
             const response = await fetch('https://poloniex.com/public?command=returnTicker')
             const result = await response.json()
-            const tempCryptoCurrency = []
+            const tempCryptoCurrencies: Array<ICryptoCurrency> = []
 
-            for (const [key, value] of Object.entries(result)) {
-                tempCryptoCurrency.push({
+            for (const [key, value] of Object.entries<ITiker>(result)) {
+                tempCryptoCurrencies.push({
                     id: value.id.toString(),
                     name: key,
                     last: value.last,
@@ -29,7 +50,7 @@ export default function QuotesScreen() {
                 })
             }
 
-            setCryptoCurrency(tempCryptoCurrency)
+            setCryptoCurrencies(tempCryptoCurrencies)
             setIsLoading(false)
             setIsError(false)
         } catch (error) {
@@ -43,7 +64,7 @@ export default function QuotesScreen() {
     }, [])
 
     useEffect(() => {
-        let timerId
+        let timerId: number
 
         if (isFocused) {
             timerId = setInterval(getCryptoCurrencyFromApi, 5000)
@@ -80,7 +101,7 @@ export default function QuotesScreen() {
                             </TableCell>
                         </TableRow>
                         <FlatList
-                            data={cryptoCurrency}
+                            data={cryptoCurrencies}
                             renderItem={({ item }) => (
                                 <TableRow>
                                     <TableCell>
@@ -93,7 +114,7 @@ export default function QuotesScreen() {
                                         <Text style={styles.text}>{item.highestBid}</Text>
                                     </TableCell>
                                     <TableCell>
-                                        {item.percentChange > 0 ? (
+                                        {+item.percentChange > 0 ? (
                                             <Text style={[styles.text, styles.textGood]}>{`+${item.percentChange}`}</Text>
                                         ) : (
                                                 <Text style={[styles.text, styles.textBad]}>{item.percentChange}</Text>

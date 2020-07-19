@@ -1,7 +1,11 @@
-import React from 'react'
+import React, { ReactNode } from 'react'
 import { View, StyleSheet } from 'react-native'
 
-export default function TableRow({ children }) {
+interface ITableRowProps {
+    children: ReactNode
+}
+
+export default function TableRow({ children }: ITableRowProps) {
     return (
         <View style={styles.container}>{children}</View>
     )
