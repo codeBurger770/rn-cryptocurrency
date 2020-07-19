@@ -67,7 +67,7 @@ export default function QuotesScreen() {
                         )}
                         <TableRow>
                             <TableCell>
-                                <Text style={[styles.text, styles.textBold]}>Криптовалюта</Text>
+                                <Text style={[styles.text, styles.textBold]}>Имя тикера</Text>
                             </TableCell>
                             <TableCell>
                                 <Text style={[styles.text, styles.textBold]}>Последняя цена</Text>

@@ -1,12 +1,18 @@
 import React from 'react'
-import { Text, StyleSheet } from 'react-native'
+import { Text, Linking, StyleSheet } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 
 export default function AboutScreen() {
+    const handleClick = async e => await Linking.openURL('https://poloniex.com/')
     return (
         <SafeAreaView style={styles.container} edges={['top', 'left', 'right']}>
-            <Text>О приложении 1</Text>
-            <Text>О приложении 2</Text>
+            <Text style={styles.header}>О приложении</Text>
+            <Text style={styles.text}>
+                Приложение для отслеживания котировок криптовалют с сайта
+                {' '}
+                <Text style={[styles.text, styles.link]} onPress={handleClick}>poloniex.com</Text>
+                .
+            </Text>
         </SafeAreaView>
     )
 }
@@ -14,7 +20,17 @@ export default function AboutScreen() {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        alignItems: 'flex-start',
-        justifyContent: 'space-between'
+        padding: 12
+    },
+    header: {
+        fontSize: 40,
+        fontWeight: 'bold',
+        marginBottom: 12
+    },
+    text: {
+        fontSize: 16
+    },
+    link: {
+        textDecorationLine: 'underline'
     }
 })
