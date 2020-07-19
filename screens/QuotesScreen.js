@@ -1,16 +1,17 @@
-import React, { useState } from 'react'
-import { FlatList, ActivityIndicator, StyleSheet } from 'react-native'
+import React, { useState, useEffect } from 'react'
+import { Text, FlatList, ActivityIndicator, StyleSheet } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
-import { useFocusEffect } from '@react-navigation/native'
+import { useIsFocused } from '@react-navigation/native'
 
 import Table from '../components/Table'
 import TableRow from '../components/TableRow'
-import TableHeaderCell from '../components/TableHeaderCell'
-import TableDataCell from '../components/TableDataCell'
+import TableCell from '../components/TableCell'
 
 export default function QuotesScreen() {
     const [isLoading, setIsLoading] = useState(true)
+    const [isError, setIsError] = useState(false)
     const [cryptoCurrency, setCryptoCurrency] = useState([])
+    const isFocused = useIsFocused()
 
     const getCryptoCurrencyFromApi = async () => {
         try {
@@ -30,16 +31,26 @@ export default function QuotesScreen() {
 
             setCryptoCurrency(tempCryptoCurrency)
             setIsLoading(false)
+            setIsError(false)
         } catch (error) {
-            console.error(error)
+            setIsError(true)
+            console.log(error)
         }
     }
 
-    useFocusEffect(() => {
+    useEffect(() => {
         getCryptoCurrencyFromApi()
-        const timerId = setInterval(getCryptoCurrencyFromApi, 5000)
-        return () => clearInterval(timerId)
     }, [])
+
+    useEffect(() => {
+        let timerId
+
+        if (isFocused) {
+            timerId = setInterval(getCryptoCurrencyFromApi, 5000)
+        }
+
+        return () => clearInterval(timerId)
+    }, [isFocused])
 
     return (
         <SafeAreaView style={styles.container} edges={['top', 'left', 'right']}>
@@ -47,20 +58,47 @@ export default function QuotesScreen() {
                 <ActivityIndicator size="large" />
             ) : (
                     <Table>
+                        {isError && (
+                            <TableRow>
+                                <TableCell>
+                                    <Text style={[styles.text, styles.textBold, styles.textBad]}>Ошибка</Text>
+                                </TableCell>
+                            </TableRow>
+                        )}
                         <TableRow>
-                            <TableHeaderCell>Криптовалюта</TableHeaderCell>
-                            <TableHeaderCell>Последняя цена</TableHeaderCell>
-                            <TableHeaderCell>Текущая цена</TableHeaderCell>
-                            <TableHeaderCell>Изменение</TableHeaderCell>
-                        </TableRow >
+                            <TableCell>
+                                <Text style={[styles.text, styles.textBold]}>Криптовалюта</Text>
+                            </TableCell>
+                            <TableCell>
+                                <Text style={[styles.text, styles.textBold]}>Последняя цена</Text>
+                            </TableCell>
+                            <TableCell>
+                                <Text style={[styles.text, styles.textBold]}>Текущая цена</Text>
+                            </TableCell>
+                            <TableCell>
+                                <Text style={[styles.text, styles.textBold]}>Изменение</Text>
+                            </TableCell>
+                        </TableRow>
                         <FlatList
                             data={cryptoCurrency}
                             renderItem={({ item }) => (
                                 <TableRow>
-                                    <TableHeaderCell>{item.name}</TableHeaderCell>
-                                    <TableDataCell>{item.last}</TableDataCell>
-                                    <TableDataCell>{item.highestBid}</TableDataCell>
-                                    <TableDataCell>{item.percentChange}</TableDataCell>
+                                    <TableCell>
+                                        <Text style={[styles.text, styles.textBold]}>{item.name}</Text>
+                                    </TableCell>
+                                    <TableCell>
+                                        <Text style={styles.text}>{item.last}</Text>
+                                    </TableCell>
+                                    <TableCell>
+                                        <Text style={styles.text}>{item.highestBid}</Text>
+                                    </TableCell>
+                                    <TableCell>
+                                        {item.percentChange > 0 ? (
+                                            <Text style={[styles.text, styles.textGood]}>{`+${item.percentChange}`}</Text>
+                                        ) : (
+                                                <Text style={[styles.text, styles.textBad]}>{item.percentChange}</Text>
+                                            )}
+                                    </TableCell>
                                 </TableRow>
                             )}
                             keyExtractor={item => item.id}
@@ -75,5 +113,18 @@ const styles = StyleSheet.create({
     container: {
         flex: 1,
         justifyContent: 'center'
+    },
+    text: {
+        textAlign: 'center',
+        fontSize: 10
+    },
+    textBold: {
+        fontWeight: 'bold'
+    },
+    textGood: {
+        color: 'green'
+    },
+    textBad: {
+        color: 'red'
     }
 })
