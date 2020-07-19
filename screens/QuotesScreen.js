@@ -1,6 +1,7 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState } from 'react'
 import { FlatList, ActivityIndicator, StyleSheet } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
+import { useFocusEffect } from '@react-navigation/native'
 
 import Table from '../components/Table'
 import TableRow from '../components/TableRow'
@@ -34,7 +35,7 @@ export default function QuotesScreen() {
         }
     }
 
-    useEffect(() => {
+    useFocusEffect(() => {
         getCryptoCurrencyFromApi()
         const timerId = setInterval(getCryptoCurrencyFromApi, 5000)
         return () => clearInterval(timerId)
