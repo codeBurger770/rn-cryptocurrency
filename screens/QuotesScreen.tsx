@@ -1,73 +1,27 @@
-import React, { useState, useEffect } from 'react'
+import React, { useEffect } from 'react'
 import { Text, FlatList, ActivityIndicator, StyleSheet } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { useIsFocused } from '@react-navigation/native'
+import { observer } from 'mobx-react'
 
 import Table from '../components/Table'
 import TableRow from '../components/TableRow'
 import TableCell from '../components/TableCell'
+import useQuotesStore from '../hooks/useQuotesStore'
 
-interface ITiker {
-    id: number,
-    last: string,
-    lowestAsk: string,
-    highestBid: string,
-    percentChange: string,
-    baseVolume: string,
-    quoteVolume: string,
-    isFrozen: string,
-    high24hr: string,
-    low24hr: string
-}
-
-interface ICryptoCurrency {
-    id: string,
-    name: string,
-    last: string,
-    highestBid: string,
-    percentChange: string
-}
-
-export default function QuotesScreen() {
-    const [isLoading, setIsLoading] = useState(true)
-    const [isError, setIsError] = useState(false)
-    const [cryptoCurrencies, setCryptoCurrencies] = useState<Array<ICryptoCurrency>>([])
+const QuotesScreen = observer(() => {
+    const quotesStore = useQuotesStore()
     const isFocused = useIsFocused()
 
-    const getCryptoCurrencyFromApi = async () => {
-        try {
-            const response = await fetch('https://poloniex.com/public?command=returnTicker')
-            const result = await response.json()
-            const tempCryptoCurrencies: Array<ICryptoCurrency> = []
-
-            for (const [key, value] of Object.entries<ITiker>(result)) {
-                tempCryptoCurrencies.push({
-                    id: value.id.toString(),
-                    name: key,
-                    last: value.last,
-                    highestBid: value.highestBid,
-                    percentChange: value.percentChange
-                })
-            }
-
-            setCryptoCurrencies(tempCryptoCurrencies)
-            setIsLoading(false)
-            setIsError(false)
-        } catch (error) {
-            setIsError(true)
-            console.log(error)
-        }
-    }
-
     useEffect(() => {
-        getCryptoCurrencyFromApi()
+        quotesStore.fetchCryptoCurrencies()
     }, [])
 
     useEffect(() => {
         let timerId: number
 
         if (isFocused) {
-            timerId = setInterval(getCryptoCurrencyFromApi, 5000)
+            timerId = setInterval(quotesStore.fetchCryptoCurrencies, 5000)
         }
 
         return () => clearInterval(timerId)
@@ -75,11 +29,11 @@ export default function QuotesScreen() {
 
     return (
         <SafeAreaView style={styles.container} edges={['top', 'left', 'right']}>
-            {isLoading ? (
+            {quotesStore.isLoading ? (
                 <ActivityIndicator size="large" />
             ) : (
                     <Table>
-                        {isError && (
+                        {quotesStore.isError && (
                             <TableRow>
                                 <TableCell>
                                     <Text style={[styles.text, styles.textBold, styles.textBad]}>Ошибка</Text>
@@ -101,7 +55,7 @@ export default function QuotesScreen() {
                             </TableCell>
                         </TableRow>
                         <FlatList
-                            data={cryptoCurrencies}
+                            data={quotesStore.cryptoCurrencies}
                             renderItem={({ item }) => (
                                 <TableRow>
                                     <TableCell>
@@ -114,7 +68,7 @@ export default function QuotesScreen() {
                                         <Text style={styles.text}>{item.highestBid}</Text>
                                     </TableCell>
                                     <TableCell>
-                                        {+item.percentChange > 0 ? (
+                                        {+item.percentChange >= 0 ? (
                                             <Text style={[styles.text, styles.textGood]}>{`+${item.percentChange}`}</Text>
                                         ) : (
                                                 <Text style={[styles.text, styles.textBad]}>{item.percentChange}</Text>
@@ -128,7 +82,9 @@ export default function QuotesScreen() {
                 )}
         </SafeAreaView >
     )
-}
+})
+
+export default QuotesScreen
 
 const styles = StyleSheet.create({
     container: {

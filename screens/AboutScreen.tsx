@@ -4,7 +4,7 @@ import { SafeAreaView } from 'react-native-safe-area-context'
 
 export default function AboutScreen() {
     const handleClick = async () => await Linking.openURL('https://poloniex.com/')
-    
+
     return (
         <SafeAreaView style={styles.container} edges={['top', 'left', 'right']}>
             <Text style={styles.header}>О приложении</Text>
